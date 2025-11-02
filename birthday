@@ -1,0 +1,240 @@
+<!--
+Interactive Virtual Birthday Card
+File: index.html
+
+What's inside:
+- Single-file static webpage (HTML + CSS + JS)
+- Animated balloons, confetti, personal message for Ziad
+- Clickable "Play Song" and "Blow Out Candles" interactions
+- Small WebAudio melody (no external assets required)
+
+How to use on GitHub Pages:
+1. Create a new GitHub repo (e.g. `ziad-birthday-card`).
+2. Add this file as `index.html` at the repo root.
+3. Commit & push to main branch.
+4. In repository Settings > Pages, set source to `main` branch and root folder. GitHub Pages will publish at `https://<your-username>.github.io/<repo-name>/`.
+
+Want me to also create a README with deployment steps or a multi-file repo (separate CSS/JS)? Ask and I'll add it.
+-->
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Happy Birthday Ziad 🎉</title>
+  <style>
+    :root{--bg:#0b1020;--card:#0f1724;--accent:#ff6b81;--muted:#9aa4b2}
+    html,body{height:100%;margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,'Helvetica Neue',Arial}
+    body{background:linear-gradient(180deg,var(--bg),#071126);display:flex;align-items:center;justify-content:center;padding:24px;color:#e6eef8}
+    .wrap{width:980px;max-width:100%;background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.01));border-radius:18px;box-shadow:0 10px 40px rgba(2,6,23,0.7);overflow:hidden;position:relative}
+    header{display:flex;padding:28px 32px;align-items:center;gap:16px}
+    .logo{width:64px;height:64px;border-radius:12px;background:linear-gradient(45deg,var(--accent),#ffd66b);display:flex;align-items:center;justify-content:center;font-weight:700}
+    .title h1{margin:0;font-size:22px;letter-spacing:0.5px}
+    .title p{margin:2px 0 0;font-size:13px;color:var(--muted)}
+
+    main{display:grid;grid-template-columns:1fr 380px;gap:24px;padding:0 32px 32px}
+    .left{padding:18px;border-radius:12px;background:linear-gradient(180deg,rgba(255,255,255,0.012),transparent)}
+    .message{font-size:18px;line-height:1.5}
+    .big-words{display:flex;gap:12px;align-items:center;margin-top:18px}
+    .big-words h2{font-size:28px;margin:0}
+
+    .controls{margin-top:20px;display:flex;gap:10px;flex-wrap:wrap}
+    button{background:transparent;border:1px solid rgba(255,255,255,0.08);padding:10px 14px;border-radius:10px;color:inherit;cursor:pointer;font-weight:600}
+    button.primary{background:linear-gradient(90deg,var(--accent),#ffd66b);color:#081126;border:none;box-shadow:0 6px 18px rgba(255,107,129,0.12)}
+
+    .card-preview{padding:18px;border-radius:12px;background:rgba(255,255,255,0.015);min-height:420px;position:relative}
+
+    /* balloons */
+    .balloon{position:absolute;bottom:10px;width:84px;height:120px;border-radius:60%/50%;background:var(--accent);transform-origin:center bottom}
+    .balloon:after{content:'';position:absolute;left:50%;transform:translateX(-50%);bottom:-8px;width:2px;height:20px;background:rgba(255,255,255,0.6)}
+    .b1{left:40px;background:linear-gradient(180deg,#ff9aa2,#ff6b81);animation:float 7s ease-in-out infinite}
+    .b2{left:120px;background:linear-gradient(180deg,#ffd66b,#ff9aa2);animation:float 6.2s ease-in-out infinite;animation-delay:0.6s}
+    .b3{left:200px;background:linear-gradient(180deg,#7be3ff,#8fc8ff);animation:float 7.8s ease-in-out infinite;animation-delay:1s}
+
+    @keyframes float{0%{transform:translateY(0) rotate(-6deg)}50%{transform:translateY(-26px) rotate(6deg)}100%{transform:translateY(0) rotate(-6deg)}}
+
+    /* confetti canvas sits on top */
+    canvas#confetti{position:absolute;inset:0;pointer-events:none}
+
+    /* cake area */
+    .cake{width:220px;margin:28px auto 0;text-align:center}
+    .cake .tier{background:#fff;border-radius:10px;padding:10px;margin-bottom:6px}
+    .cake .icing{background:linear-gradient(90deg,#ff6b81,#ffd66b);height:14px;border-radius:8px;margin-bottom:8px}
+    .candles{display:flex;gap:6px;justify-content:center}
+    .candle{width:8px;height:34px;background:#fff;border-radius:4px;position:relative}
+    .flame{position:absolute;top:-12px;left:50%;transform:translateX(-50%);width:10px;height:16px;border-radius:50% 50% 50% 50%;background:radial-gradient(circle at 40% 30%,#ffd66b, #ff9a3c 60%);box-shadow:0 6px 10px rgba(255,150,60,0.18)}
+
+    footer{padding:14px 18px;border-top:1px dashed rgba(255,255,255,0.02);display:flex;justify-content:space-between;align-items:center}
+    .small{font-size:13px;color:var(--muted)}
+
+    /* responsive */
+    @media (max-width:880px){main{grid-template-columns:1fr} .card-preview{min-height:280px}}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="logo">🎂</div>
+      <div class="title">
+        <h1>Happy Birthday, Ziad</h1>
+        <p>Interactive card — created with love 💖</p>
+      </div>
+    </header>
+
+    <main>
+      <section class="left">
+        <div class="message">
+          <p>Hey Ziad — I made you this little interactive card. Click the buttons to play a birthday melody, toss confetti, and blow out the candles. I hope today brings you as much joy as you bring me. ❤️</p>
+          <div class="big-words">
+            <h2>Wishing you a day full of laughter!</h2>
+          </div>
+
+          <div class="controls">
+            <button id="playSong" class="primary">Play Song</button>
+            <button id="confettiBtn">Toss Confetti</button>
+            <button id="blowBtn">Blow Out Candles</button>
+            <button id="downloadBtn">Download as PNG</button>
+          </div>
+        </div>
+
+        <p style="margin-top:18px;color:var(--muted)">Tip: personalize the message text near the top-left if you want a custom note.</p>
+      </section>
+
+      <aside class="card-preview" id="preview">
+        <canvas id="confetti" width="800" height="600"></canvas>
+
+        <div class="balloon b1" style="bottom:40px;"></div>
+        <div class="balloon b2" style="bottom:20px;"></div>
+        <div class="balloon b3" style="bottom:60px;"></div>
+
+        <div style="position:relative;z-index:1;padding:40px 24px;text-align:center">
+          <h2 style="margin:0 0 6px;font-size:26px">Happy Birthday, Ziad 🎉</h2>
+          <p style="margin:0 0 20px;color:var(--muted)">Click "Blow Out Candles" and make a wish!</p>
+
+          <div class="cake" id="cake">
+            <div class="tier" style="width:200px;margin:0 auto">
+              <div class="icing"></div>
+              <div style="height:70px;display:flex;align-items:center;justify-content:center;font-weight:700;color:#081126">Ziad</div>
+            </div>
+            <div class="tier" style="width:160px;margin:0 auto">
+              <div class="icing"></div>
+              <div style="height:40px"></div>
+            </div>
+            <div class="candles" id="candles">
+              <div class="candle"><div class="flame"></div></div>
+              <div class="candle"><div class="flame"></div></div>
+              <div class="candle"><div class="flame"></div></div>
+            </div>
+          </div>
+        </div>
+
+      </aside>
+    </main>
+
+    <footer>
+      <div class="small">Made with ❤️ — personalize it in the HTML file.</div>
+      <div class="small">Tip: change the page title to the year or add your photos.</div>
+    </footer>
+  </div>
+
+  <script>
+    // Simple confetti implementation
+    const confettiCanvas = document.getElementById('confetti');
+    const ctx = confettiCanvas.getContext('2d');
+    let confettiPieces = [];
+    function resizeCanvas(){ confettiCanvas.width = confettiCanvas.clientWidth; confettiCanvas.height = confettiCanvas.clientHeight; }
+    window.addEventListener('resize', resizeCanvas); resizeCanvas();
+
+    function createConfetti(){
+      confettiPieces = [];
+      const count = 120;
+      for(let i=0;i<count;i++){
+        confettiPieces.push({x:Math.random()*confettiCanvas.width,y:Math.random()*-confettiCanvas.height*2, size:6+Math.random()*8, speed:2+Math.random()*4, rot:Math.random()*360, velX:(Math.random()-0.5)*2, color: `hsl(${Math.random()*360},80%,60%)`});
+      }
+      animateConfetti();
+    }
+    let confettiRunning = false;
+    function animateConfetti(){
+      if(confettiPieces.length===0){ confettiRunning=false; ctx.clearRect(0,0,confettiCanvas.width,confettiCanvas.height); return; }
+      confettiRunning = true;
+      ctx.clearRect(0,0,confettiCanvas.width,confettiCanvas.height);
+      for(let p of confettiPieces){
+        p.y += p.speed;
+        p.x += p.velX;
+        p.rot += p.speed;
+        ctx.save();
+        ctx.translate(p.x,p.y);
+        ctx.rotate(p.rot*Math.PI/180);
+        ctx.fillStyle = p.color;
+        ctx.fillRect(-p.size/2,-p.size/2,p.size,p.size*0.6);
+        ctx.restore();
+      }
+      confettiPieces = confettiPieces.filter(p=>p.y < confettiCanvas.height+50);
+      requestAnimationFrame(animateConfetti);
+    }
+
+    document.getElementById('confettiBtn').addEventListener('click', ()=>{ createConfetti(); });
+
+    // Simple WebAudio melody for 'Happy Birthday' short riff
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    let audioCtx;
+    function playMelody(){
+      if(!audioCtx) audioCtx = new AudioContext();
+      const now = audioCtx.currentTime;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'sine';
+      osc.connect(gain); gain.connect(audioCtx.destination);
+      const notes = [392,392,440,392,523,494,392,392,440,392,587,523]; // a tiny happy-bday riff
+      let t=0; gain.gain.setValueAtTime(0, now);
+      osc.start(now);
+      gain.gain.linearRampToValueAtTime(0.12, now+0.02);
+      for(let i=0;i<notes.length;i++){
+        const dur = i<6?0.28:0.32;
+        osc.frequency.setValueAtTime(notes[i], now + t);
+        t += dur;
+      }
+      gain.gain.linearRampToValueAtTime(0, now+t+0.2);
+      osc.stop(now+t+0.25);
+    }
+    document.getElementById('playSong').addEventListener('click', ()=>{ playMelody(); });
+
+    // Blow out candles
+    const blowBtn = document.getElementById('blowBtn');
+    blowBtn.addEventListener('click', ()=>{
+      const flames = document.querySelectorAll('.flame');
+      flames.forEach((f,i)=>{
+        f.style.transition='transform 700ms ease, opacity 700ms ease';
+        f.style.transform='scale(0.1) translateY(-6px)';
+        f.style.opacity='0';
+      });
+      createConfetti();
+      // recreate candle flames after 6s so user can blow again
+      setTimeout(()=>{ flames.forEach(f=>{ f.style.transition='none'; f.style.transform='scale(1) translateY(0)'; f.style.opacity='1'; }); },6000);
+    });
+
+    // Download PNG of preview
+    document.getElementById('downloadBtn').addEventListener('click', async ()=>{
+      const container = document.getElementById('preview');
+      const rect = container.getBoundingClientRect();
+      // draw a lightweight snapshot using html2canvas-like approach (simple)
+      // We'll draw balloons and cake manually to a canvas for a quick PNG.
+      const out = document.createElement('canvas'); out.width = rect.width; out.height = rect.height;
+      const octx = out.getContext('2d');
+      // background
+      octx.fillStyle = '#071126'; octx.fillRect(0,0,out.width,out.height);
+      octx.fillStyle = '#ffffff'; octx.font='28px serif'; octx.fillText('Happy Birthday, Ziad 🎉',20,54);
+      // export
+      const url = out.toDataURL('image/png');
+      const a = document.createElement('a'); a.href = url; a.download = 'ziad-birthday-card.png'; a.click();
+    });
+
+    // small: make canvas responsive
+    (function loop(){
+      if(confettiRunning){ /* animation running via requestAnimationFrame already */ }
+      requestAnimationFrame(loop);
+    })();
+  </script>
+</body>
+</html>
